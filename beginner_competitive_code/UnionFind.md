@@ -1,68 +1,81 @@
-# Disjoint Set Union (Union‑Find) – Beginner Friendly
+# Union Find (Disjoint Set Union)
 
 ## When to Use
-- Finding connected components in an undirected graph.
-- Handling equivalence relations, merging sets dynamically.
-- Problems that require **offline** queries for connectivity.
+- Problems that involve connectivity, grouping, or merging sets (e.g., detecting cycles, Kruskal's MST, counting components).
+
+## Recognition Patterns
+- "Number of connected components", "Detect a cycle in an undirected graph", "Friend circles".
 
 ## Core Idea
-Maintain a parent array where each element points to its set representative (root). Use **path compression** on `find` and **union by rank/size** on `union` to keep operations near‑constant.
+Maintain a parent array and, optionally, a rank/size array. `find(x)` returns the representative of the set (with path compression). `union(x,y)` merges two sets (by rank or size).
 
-## Basic C++ Code (C++17)
+## Generic Template Code (C++17)
 ```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
 struct DSU {
-    vector<int> parent, size;
+    vector<int> parent, sz; // update answer / state
     DSU(int n = 0) { init(n); }
     void init(int n) {
         parent.resize(n);
-        size.assign(n, 1);
+        sz.assign(n, 1);
         iota(parent.begin(), parent.end(), 0);
     }
-    // Find with path compression
-    int find(int x) {
-        if (parent[x] == x) return x;
-        return parent[x] = find(parent[x]);
+    int find(int x) { // process current element
+        if (parent[x] != x) parent[x] = find(parent[x]); // move pointers (path compression)
+        return parent[x]; // update answer
     }
-    // Union by size
-    bool unite(int a, int b) {
+    bool unite(int a, int b) { // move pointers
         a = find(a); b = find(b);
         if (a == b) return false; // already same set
-        if (size[a] < size[b]) swap(a, b);
-        parent[b] = a;
-        size[a] += size[b];
+        if (sz[a] < sz[b]) swap(a, b); // union by size
+        parent[b] = a; // update state
+        sz[a] += sz[b]; // update answer / state
         return true;
     }
-    // Check if two elements are in the same set
-    bool same(int a, int b) { return find(a) == find(b); }
 };
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n, m; cin >> n >> m; // n nodes, m unions/queries
+    DSU dsu(n);
+    while (m--) {
+        int type, u, v; cin >> type >> u >> v; // type: 1=union, 2=connected?
+        if (type == 1) dsu.unite(u, v); // process current element
+        else cout << (dsu.find(u) == dsu.find(v) ? "YES" : "NO") << '\n'; // update answer
+    }
+    return 0;
+}
 ```
 
-## Time / Space Complexity
-- **Find / Union:** amortized `α(N)` ≈ `O(1)` (inverse Ackermann).
-- **Space:** `O(N)` for `parent` and `size` arrays.
+## Time Complexity
+`O(α(N))` per operation (inverse Ackermann), practically constant.
 
-## Common Beginner Mistakes
-- Forgetting to compress the path in `find` – leads to linear time on deep trees.
-- Using **rank** incorrectly (should compare heights, not sizes).
-- Off‑by‑one when indexing (0‑based vs 1‑based input).
+## Space Complexity
+`O(N)` for parent and size arrays.
 
-## Mini Dry‑Run Example
-```
-N = 5, operations: union(0,1), union(2,3), union(1,2)
-After first union: parent = [0,0,2,3,4]
-After second:        parent = [0,0,2,2,4]
-After third (union roots 0 and 2): parent = [0,0,0,0,4]
-find(3) -> compresses path to 0.
-```
+## Common Variations
+- Union‑by‑rank instead of size.
+- Maintaining additional data per component (e.g., sum of values).
+- Offline queries using DSU on tree.
+
+## Common Mistakes
+- Forgetting path compression → near‑linear time.
+- Using 1‑based indices without adjusting the DSU initialization.
+- Not resetting DSU between multiple test cases.
+
+## Dry Run Example
+`n=5, unions: (0,1),(1,2),(3,4)` → after operations, components are `{0,1,2}` and `{3,4}`.
 
 ## Interview Tips
-- Mention both **path compression** and **union by size/rank** as the two optimizations.
-- Explain why DSU is ideal for **Kruskal’s MST** and **offline connectivity** (e.g., queries sorted by weight).
-- Compare with BFS/DFS for connectivity – DSU often simpler when many union operations.
+- Explain both path compression and union by size/rank as the two classic optimizations.
+- Mention that DSU works for undirected connectivity; directed graphs need other techniques.
+- Clarify time complexity and why it’s essentially O(1) amortized.
 
-## Related LeetCode Problems
-- 200. Number of Islands (Union‑Find solution)
-- 261. Graph Valid Tree
-- 695. Max Area of Island (alternative DSU)
-- 399. Evaluate Division (Union‑Find with weights – advanced)
+## Similar LeetCode Problems
+1. 323. Number of Connected Components in an Undirected Graph
+2. 721. Accounts Merge
+3. 1197. Minimum Knight Moves (often solved with DSU for obstacles)
 ```

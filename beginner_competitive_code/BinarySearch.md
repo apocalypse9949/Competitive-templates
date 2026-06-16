@@ -1,68 +1,79 @@
-# Binary Search – Beginner Friendly
+# Binary Search
 
 ## When to Use
-- The input array is **sorted** (ascending or descending).
-- You need to find an element, the first/last occurrence, or the **boundary** where a predicate changes.
+- Search for an element or boundary condition in a **monotonic** (sorted) array or answer space.
+- Problems that ask for the *minimum* / *maximum* feasible value.
+
+## Recognition Patterns
+- "Find the smallest/largest X such that ...", "Search in a rotated sorted array", "Find peak element".
 
 ## Core Idea
-Repeatedly halve the search interval while keeping the invariant that the answer lies inside the interval.
+Iteratively shrink the search interval `[low, high]` using the middle element to decide which half may contain the answer.
 
-## Classic Template (C++17)
+## Generic Template Code (C++17)
 ```cpp
-int binarySearch(const vector<int>& arr, int target) {
-    int lo = 0, hi = (int)arr.size() - 1; // inclusive bounds
-    while (lo <= hi) {
-        int mid = lo + (hi - lo) / 2; // avoid overflow
-        if (arr[mid] == target) return mid;   // found
-        if (arr[mid] < target) lo = mid + 1; // search right half
-        else hi = mid - 1;                    // search left half
+#include <bits/stdc++.h>
+using namespace std;
+
+// Return true if condition holds for `mid`
+bool ok(long long mid, const vector<int>& a) {
+    // placeholder: implement problem‑specific check
+    return false;
+}
+
+long long binarySearch(const vector<int>& a, long long lo, long long hi) {
+    while (lo < hi) {
+        long long mid = lo + (hi - lo) / 2; // avoid overflow
+        if (ok(mid, a)) {
+            hi = mid; // update answer / state, move pointers left
+        } else {
+            lo = mid + 1; // move pointers right
+        }
     }
-    return -1; // not found
+    return lo; // lo == hi -> answer
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n; cin>>n; vector<int>a(n); for(int &x:a)cin>>x; // sorted if required
+    long long ans = binarySearch(a, 0, 1e9); // adjust bounds
+    cout << ans << '\n';
+    return 0;
 }
 ```
 
-## Finding First / Last Position (Lower / Upper Bound)
-```cpp
-// first index where arr[idx] >= target
-int lowerBound(const vector<int>& arr, int target) {
-    int lo = 0, hi = (int)arr.size(); // hi is exclusive
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
-        if (arr[mid] < target) lo = mid + 1;
-        else hi = mid;
-    }
-    return lo; // may be arr.size() if target > all elements
-}
+## Time Complexity
+`O(log(range) * check)` – typically `O(log n)` when the check is `O(1)`.
 
-// first index where arr[idx] > target (upper bound)
-int upperBound(const vector<int>& arr, int target) {
-    int lo = 0, hi = (int)arr.size();
-    while (lo < hi) {
-        int mid = lo + (hi - lo) / 2;
-        if (arr[mid] <= target) lo = mid + 1;
-        else hi = mid;
-    }
-    return lo;
-}
-```
+## Space Complexity
+`O(1)` auxiliary.
 
-## Common Pitfalls for Beginners
-- **Off‑by‑one**: mixing inclusive/exclusive bounds. Use one style consistently.
-- Forget to update `mid` calculation to avoid overflow (`lo + (hi-lo)/2`).
-- Not handling the case when the target does not exist – return `-1` or `arr.size()` accordingly.
+## Common Variations
+- Binary search on answer (parametric search).
+- Lower/upper bound (`std::lower_bound`, `std::upper_bound`).
+- Search in rotated array, in matrix, in function monotonicity.
 
-## Mini Dry‑Run Example
-Array: `[1,3,5,7,9]`, target `5` → `mid=2`, returns index `2`.
-Target `6` → `lowerBound` returns `3` (first >=6), `upperBound` returns `3` (first >6).
+## Common Mistakes
+- Infinite loop by not moving `lo`/`hi` correctly.
+- Off‑by‑one: using `mid = (lo+hi)/2` may cause overflow.
+- Forgetting to handle duplicate values for lower/upper bound.
+
+## Dry Run Example
+Find smallest `x` such that `x*x >= 20`:
+- lo=0, hi=20, mid=10 → ok? 100>=20 true → hi=10
+- lo=0, hi=10, mid=5 → ok? 25>=20 true → hi=5
+- lo=0, hi=5, mid=2 → ok? 4>=20 false → lo=3
+- lo=3, hi=5, mid=4 → ok? 16>=20 false → lo=5
+- lo==hi==5 → answer 5.
 
 ## Interview Tips
-- Mention that binary search works on **monotonic** predicates, not just plain equality.
-- Show how to adapt the template for "search the answer" problems (e.g., maximum feasible value).
-- Compare with linear scan – O(log N) vs O(N).
+- State the invariant: `[lo, hi)` or `[lo, hi]`.
+- Mention using `while(lo < hi)` for left‑biased search.
+- Discuss when to use `double` binary search for real values.
 
-## Related LeetCode Problems
-- 704. Binary Search
-- 34. Find First and Last Position of Element in Sorted Array
-- 69. Sqrt(x) (binary search on answer)
-- 162. Find Peak Element (binary search on condition)
+## Similar LeetCode Problems
+1. 704. Binary Search
+2. 162. Find Peak Element
+3. 410. Split Array Largest Sum (binary search on answer)
 ```

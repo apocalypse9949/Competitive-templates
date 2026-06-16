@@ -1,53 +1,73 @@
-# Dynamic Programming – Beginner Friendly
+# Dynamic Programming (DP)
 
 ## When to Use
-- Problems that can be broken down into **overlapping sub‑problems** with optimal sub‑structure.
-- You need to compute a result for many states efficiently by **reusing** previously computed results.
+- Problems where the solution can be expressed in terms of solutions to sub‑problems with overlapping sub‑structures.
+- Optimizing decisions over sequences, grids, subsets, or trees.
+
+## Recognition Patterns
+- "Maximum/Minimum ...", "Count number of ways", "Partition", "Knapsack", "Longest ... subsequence".
 
 ## Core Idea
-Define a **state** (usually an index or a pair of indices) representing a sub‑problem, then write a **recurrence** that expresses this state in terms of smaller states. Store the results in a table (memoization) to avoid recomputation.
+Define a state representing a partial solution, derive a recurrence, and fill a DP table (iterative) or use memoized recursion.
 
-## Classic Template: 0/1 Knapsack (Iterative DP)
+## Generic Template Code (C++17)
 ```cpp
-int n = items.size();
-int W = capacity;
-vector<int> dp(W + 1, 0);
-for (int i = 0; i < n; ++i) {
-    for (int w = W; w >= items[i].weight; --w) {
-        dp[w] = max(dp[w], dp[w - items[i].weight] + items[i].value);
+#include <bits/stdc++.h>
+using namespace std;
+
+// Example: 1‑D DP for "Maximum Subarray Sum" (Kadane) – replace with your recurrence
+int solve(const vector<int>& nums) {
+    int n = nums.size();
+    vector<int> dp(n, 0); // dp[i] = best ending at i
+    dp[0] = nums[0];
+    int answer = dp[0];
+    for (int i = 1; i < n; ++i) {
+        // dp transition: either extend previous or start new
+        dp[i] = max(nums[i], dp[i-1] + nums[i]); // update answer / state
+        answer = max(answer, dp[i]);
     }
+    return answer; // placeholder result
 }
-int answer = dp[W];
-```
-*We iterate `w` backwards to avoid using the same item more than once.*
 
-## Recursive Memoization (Top‑Down) Example – Fibonacci
-```cpp
-vector<long long> memo(100, -1);
-long long fib(int n) {
-    if (n <= 1) return n;
-    if (memo[n] != -1) return memo[n];
-    return memo[n] = fib(n-1) + fib(n-2);
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n; cin>>n; vector<int>a(n); for(int &x:a)cin>>x;
+    cout<<solve(a)<<"\n";
+    return 0;
 }
 ```
 
-## Common Beginner Pitfalls
-- **Incorrect state definition** – make sure the state captures everything needed to make a decision.
-- Forgetting to **initialize** DP table (e.g., using `-INF` for maximization problems).
-- Not handling **base cases** correctly, leading to out‑of‑bounds access.
-- Using **forward loops** when you need a *0/1* knapsack (can cause reuse of an item).
+## Time Complexity
+`O(n * state_dim)` – linear in the number of states (here `O(n)`).
 
-## Mini Dry‑Run (Fibonacci up to 5)
-`memo` initially `[-1,...]`. Calls: `fib(5)` → `fib(4)+fib(3)` → … stores results as they return. Final table: `[0,1,1,2,3,5]`.
+## Space Complexity
+`O(n)` for the DP table, can be reduced to `O(1)` if only previous row needed.
+
+## Common Variations
+- 2‑D DP (grid/path problems)
+- DP on subsets (bitmask DP)
+- DP on trees (post‑order traversal)
+- Memoization with recursion (`unordered_map` for state -> value)
+
+## Common Mistakes
+- Forgetting to initialise base cases correctly.
+- Over‑counting because of off‑by‑one in indices.
+- Using `int` where values exceed 2³¹‑1 (`long long`).
+
+## Dry Run Example
+For `[-2,1,-3,4,-1,2,1,-5,4]` (Kadane):
+- dp[0] = -2, answer = -2
+- i=1: dp[1]=max(1, -2+1)=1, answer=1
+- ... final answer = 6 (subarray `[4,-1,2,1]`).
 
 ## Interview Tips
-- Mention **time‑space trade‑off** – sometimes you can roll the DP array to O(1) space.
-- State whether you use **bottom‑up** (iterative) or **top‑down** (memoization) and why.
-- Explain how to reconstruct the solution (e.g., path reconstruction for knapsack).
+- Start by writing the recurrence on paper before coding.
+- Discuss space optimisation (rolling array) if asked.
+- Mention time‑trade‑off for O(2ⁿ) vs DP.
 
-## Related LeetCode Problems
-- 70. Climbing Stairs (simple DP)
-- 198. House Robber
-- 322. Coin Change
-- 518. Coin Change 2
+## Similar LeetCode Problems
+1. 53. Maximum Subarray
+2. 198. House Robber
+3. 322. Coin Change
 ```

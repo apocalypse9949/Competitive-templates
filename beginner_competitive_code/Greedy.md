@@ -1,49 +1,76 @@
-# Greedy Algorithms – Beginner Friendly
+# Greedy
 
 ## When to Use
-- The problem exhibits **optimal‑substructure** and a **greedy‑choice property** (making a locally optimal choice leads to a globally optimal solution).
-- Typical scenarios: activity selection, interval scheduling, Huffman coding, minimum number of platforms, etc.
+- When a locally optimal choice leads to a globally optimal solution. Typical in scheduling, selection, and optimization problems.
+
+## Recognition Patterns
+- "Select the maximum number of tasks", "Minimum number of intervals to remove", "Maximum profit with constraints".
 
 ## Core Idea
-Choose the best option **at each step** without reconsidering previous decisions. Prove correctness by showing that any optimal solution can be transformed to match the greedy choices.
+Sort or prioritize elements by a key (e.g., end time, value/weight) and iteratively pick the best candidate that does not violate constraints.
 
-## Classic Template (C++17) – Activity Selection (Maximum Non‑Overlapping Intervals)
+## Generic Template Code (C++17)
 ```cpp
-struct Interval { int start, end; };
-bool cmp(const Interval& a, const Interval& b) { return a.end < b.end; }
+#include <bits/stdc++.h>
+using namespace std;
 
-int maxActivities(vector<Interval> a) {
-    sort(a.begin(), a.end(), cmp); // sort by earliest finish time
-    int count = 0;
-    int lastEnd = INT_MIN;
-    for (const auto& it : a) {
-        if (it.start >= lastEnd) { // can attend this activity
-            ++count;
-            lastEnd = it.end;
+// Example: activity selection – maximum number of non‑overlapping intervals
+int greedyActivitySelection(vector<pair<int,int>>& intervals) {
+    // sort by finishing time
+    sort(intervals.begin(), intervals.end(),
+         [](const auto& a, const auto& b){ return a.second < b.second; }); // update answer / state
+    int cnt = 0;
+    int lastEnd = INT_MIN; // move pointers
+    for (auto &it : intervals) {
+        if (it.first >= lastEnd) { // process current element
+            ++cnt; // update answer
+            lastEnd = it.second; // move pointer to new end
         }
     }
-    return count;
+    return cnt;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n; cin >> n;
+    vector<pair<int,int>> seg(n);
+    for (auto &p : seg) cin >> p.first >> p.second;
+    cout << greedyActivitySelection(seg) << '\n';
+    return 0;
 }
 ```
 
-## Common Beginner Pitfalls
-- Sorting by **start time** instead of **end time** for interval‑based problems – leads to sub‑optimal solutions.
-- Forgetting to handle equal end times correctly (`<=` vs `<`).
-- Assuming a greedy approach works without proving the greedy‑choice property (may produce wrong answers on deceptive inputs).
+## Time Complexity
+`O(n log n)` for sorting, then `O(n)` scan.
 
-## Mini Dry‑Run Example
-Intervals: `[(1,4), (3,5), (0,6), (5,7), (8,9), (5,9)]`
-- Sorted by end: `[(1,4), (3,5), (0,6), (5,7), (8,9), (5,9)]`
-- Pick `(1,4)`, then `(5,7)`, then `(8,9)` → total 3 activities, which is optimal.
+## Space Complexity
+`O(1)` extra (apart from input storage).
+
+## Common Variations
+- Fractional knapsack (sort by value/weight).
+- Minimum number of platforms, meeting rooms.
+- Greedy coloring, Huffman coding (uses priority queue).
+
+## Common Mistakes
+- Assuming greedy works without proof; verify exchange argument.
+- Incorrect sort key leading to sub‑optimal selection.
+- Forgetting to handle equal keys consistently.
+
+## Dry Run Example
+Intervals: `[(1,3),(2,5),(4,7)]`
+- Sorted by end → `[(1,3),(2,5),(4,7)]`
+- Pick (1,3), lastEnd=3, cnt=1
+- (2,5) start<3 → skip
+- (4,7) start>=3 → pick, cnt=2.
 
 ## Interview Tips
-- Start by **explaining** why a greedy choice works (optimal substructure + exchange argument).
-- Show **sorting** step explicitly; many greedy problems rely on ordering.
-- Compare with DP approach – if greedy works, it’s usually faster and simpler.
+- Explain why the greedy choice is optimal (exchange argument or proof sketch).
+- Mention edge cases: zero‑length intervals, identical start/end.
+- Discuss when to use a priority queue for dynamic greedy.
 
-## Related LeetCode Problems
-- 452. Minimum Number of Arrows to Burst Balloons
-- 435. Non‑overlapping Intervals
-- 1005. Maximize Number of Apples Collected (greedy with priority queue)
-- 759. Employee Free Time
+## Similar LeetCode Problems
+1. 455. Assign Cookies
+2. 122. Best Time to Buy and Sell Stock II
+3. 452. Minimum Number of Arrows to Burst Balloons
 ```

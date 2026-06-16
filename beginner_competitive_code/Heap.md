@@ -1,80 +1,73 @@
-# Heap (Priority Queue) – Beginner Friendly
+# Heap (Priority Queue)
 
 ## When to Use
-- Need to repeatedly retrieve the **maximum** or **minimum** element in a dynamic set.
-- Problems that involve **k‑largest/k‑smallest**, merging sorted streams, or implementing Dijkstra’s algorithm.
+- Need to repeatedly access the minimum or maximum element efficiently.
+- Problems involving k‑largest/k‑smallest, merging streams, or scheduling with earliest deadline.
+
+## Recognition Patterns
+- "Find the k‑th largest element", "Merge n sorted lists", "Running median", "Dijkstra" (min‑heap).
 
 ## Core Idea
-A binary heap is a complete binary tree where each parent satisfies the heap property:
-- **Max‑heap:** `parent >= children`
-- **Min‑heap:** `parent <= children`
-The tree can be stored in an array for O(1) indexing.
+Use `std::priority_queue` (max‑heap by default) or customize with `greater<>` for min‑heap. Push elements, pop when needed.
 
-## Basic C++ Code (C++17) using `priority_queue`
+## Generic Template Code (C++17)
 ```cpp
-#include <queue>
-#include <vector>
+#include <bits/stdc++.h>
 using namespace std;
 
-// Max‑heap (default)
-priority_queue<int> maxHeap; // push, pop, top in O(log N)
+// Example: k‑largest elements using min‑heap of size k
+vector<int> kLargest(const vector<int>& nums, int k) {
+    priority_queue<int, vector<int>, greater<int>> minHeap; // update answer / state
+    for (int x : nums) {
+        if ((int)minHeap.size() < k) {
+            minHeap.push(x); // process current element
+        } else if (x > minHeap.top()) {
+            minHeap.pop(); // move pointers (remove smallest)
+            minHeap.push(x); // update answer
+        }
+    }
+    vector<int> res;
+    while (!minHeap.empty()) { res.push_back(minHeap.top()); minHeap.pop(); } // extract
+    sort(res.rbegin(), res.rend()); // optional order
+    return res;
+}
 
-// Min‑heap using greater comparator
-priority_queue<int, vector<int>, greater<int>> minHeap;
-
-void demo() {
-    // Insert elements
-    maxHeap.push(5);
-    maxHeap.push(2);
-    maxHeap.push(9);
-    // Get max
-    int mx = maxHeap.top(); // 9
-    maxHeap.pop();
-
-    // Min‑heap example
-    minHeap.push(5);
-    minHeap.push(2);
-    minHeap.push(9);
-    int mn = minHeap.top(); // 2
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n,k; cin>>n>>k; vector<int>a(n); for(int &x:a)cin>>x;
+    auto ans = kLargest(a,k);
+    for(int v:ans) cout<<v<<' '; cout<<"\n";
+    return 0;
 }
 ```
 
-If you need a **custom comparator** (e.g., for pairs):
-```cpp
-struct Node { int dist; int id; };
-struct Cmp { bool operator()(const Node& a, const Node& b) const {
-    return a.dist > b.dist; // min‑heap by distance
-}};
-priority_queue<Node, vector<Node>, Cmp> pq;
-```
+## Time Complexity
+`O(n log k)` for maintaining a heap of size *k*.
 
-## Time / Space Complexity
-- **Insert / Push:** `O(log N)`
-- **Extract / Pop:** `O(log N)`
-- **Peek / Top:** `O(1)`
-- **Space:** `O(N)` (stores all elements)
+## Space Complexity
+`O(k)` auxiliary.
 
-## Common Beginner Mistakes
-- Assuming `pop()` returns the element – it only removes it. Use `top()` before `pop()`.
-- Forgetting to include `<functional>` when using `greater<>` or custom comparators.
-- Mixing up *max* vs *min* heap when the comparator is reversed.
+## Common Variations
+- Max‑heap for k‑smallest.
+- Using heap for Dijkstra (pair<dist,node>).
+- Merging multiple sorted arrays.
 
-## Mini Dry‑Run Example
-Insert sequence `[4,1,7,3]` into a max‑heap:
-- After 4: `[4]`
-- After 1: `[4,1]`
-- After 7: `[7,4,1]` (7 bubbles to root)
-- After 3: `[7,4,1,3]`
-`pop()` returns 7, heap becomes `[4,3,1]`.
+## Common Mistakes
+- Forgetting to specify `greater<>` for a min‑heap.
+- Pushing all elements then extracting (O(n log n) instead of O(n log k)).
+- Not handling `k` larger than `n`.
+
+## Dry Run Example
+`nums=[5,1,3,6,4], k=3` → heap evolves to `[5,4,6]` → result `[6,5,4]`.
 
 ## Interview Tips
-- Mention that `priority_queue` internally uses a **binary heap**.
-- Discuss when a **pair** or **struct** is needed – show custom comparator.
-- Compare with **multiset** (ordered container) – heap is faster for pure top‑k operations.
+- Mention that `priority_queue` operations are `O(log size)`.
+- Clarify whether ties matter; use `pair<value,index>` if stable ordering needed.
+- For sliding‑window median, use two heaps.
 
-## Related LeetCode Problems
-- 703. Kth Largest Element in a Stream
-- 215. Kth Largest Element in an Array
-- 493. Reverse Pairs (using BIT, but heap can be alternative)
-- 378. Kth Smallest Element in a Sorted Matrix
+## Similar LeetCode Problems
+1. 215. Kth Largest Element in an Array
+2. 703. Kth Largest Element in a Stream
+3. 973. K Closest Points to Origin
 ```

@@ -1,57 +1,73 @@
-# Sliding Window – Beginner Friendly
+# Sliding Window
 
 ## When to Use
-- Problems that require **finding a sub‑array / sub‑string** satisfying a condition (sum, length, distinct characters, etc.) in **O(N)** time.
-- The window can be **fixed size** (e.g., moving average) or **dynamic** (expand/shrink based on a predicate).
+- Problems that require examining all contiguous subarrays or substrings of a certain size or satisfying a condition (e.g., longest substring with at most K distinct characters, minimum size subarray sum).
+
+## Recognition Patterns
+- "Find the smallest subarray with sum ≥ X", "Maximum length subarray with at most K distinct", "Count subarrays with sum <= T".
 
 ## Core Idea
-Maintain two pointers `left` and `right` that delimit the current window. Expand `right` to include new elements, and shrink `left` while the window violates the condition.
+Maintain a moving window `[l, r]` and adjust its bounds while preserving the invariant (e.g., sum, count of distinct elements). Expand `r` to include new elements, shrink `l` when the invariant is violated.
 
-## Fixed‑Size Window Template (C++17)
+## Generic Template Code (C++17)
 ```cpp
-vector<int> nums = {/*...*/};
-int k = 3; // window size
-int sum = 0;
-for (int i = 0; i < k; ++i) sum += nums[i]; // initial window
-for (int i = k; i < nums.size(); ++i) {
-    sum += nums[i] - nums[i - k]; // slide window by 1
-    // process sum here
-}
-```
+#include <bits/stdc++.h>
+using namespace std;
 
-## Dynamic Window Template (e.g., longest sub‑array with sum ≤ S)
-```cpp
-int target = 15; // example constraint
-int left = 0, cur = 0, best = 0;
-for (int right = 0; right < nums.size(); ++right) {
-    cur += nums[right];
-    while (cur > target && left <= right) {
-        cur -= nums[left++]; // shrink from left
+// Example: minimum length subarray with sum >= target (positive numbers)
+int minSubArrayLen(int target, const vector<int>& nums) {
+    int n = nums.size();
+    int best = n + 1; // answer / state
+    int sum = 0; // current window sum
+    int l = 0; // left pointer
+    for (int r = 0; r < n; ++r) { // right pointer – process current element
+        sum += nums[r]; // update answer / state
+        while (sum >= target) { // move pointers
+            best = min(best, r - l + 1); // update answer
+            sum -= nums[l++]; // shrink window – move pointer
+        }
     }
-    best = max(best, right - left + 1); // length of valid window
+    return (best == n + 1) ? 0 : best;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int target; cin >> target;
+    int n; cin >> n; vector<int>a(n);
+    for(int &x:a)cin>>x;
+    cout << minSubArrayLen(target, a) << '\n';
+    return 0;
 }
 ```
 
-## Common Pitfalls for Beginners
-- Forgetting to **remove** the leftmost element when shrinking the window (leads to incorrect sums). 
-- Using `>=` vs `>` in the while‑condition – off‑by‑one errors on boundary conditions. 
-- Assuming the window size is always increasing – for some problems you need to **reset** the window entirely.
+## Time Complexity
+`O(N)` – each element enters and leaves the window at most once.
 
-## Mini Dry‑Run Example (max sub‑array sum ≤ 7)
-Array `[2,1,5,1,3,2]`
-- Extend right: sum=2 → ok, best=1
-- Add 1: sum=3 → ok, best=2
-- Add 5: sum=8 >7 → shrink left (remove 2) → sum=6, left=1 → window `[1,5]`
-- Continue… eventually best length = 3 (`[1,5,1]` after adjustments).
+## Space Complexity
+`O(1)` additional.
+
+## Common Variations
+- Variable‑size windows (e.g., at most K distinct characters).
+- Fixed‑size windows for sliding‑average or maximum.
+- Using a frequency map or `unordered_map` for character counts.
+
+## Common Mistakes
+- Forgetting to shrink the window correctly leading to infinite loops.
+- Using `while` instead of `if` when the condition should be checked only once per expansion.
+- Not handling empty input or target larger than total sum.
+
+## Dry Run Example
+`target=7, nums=[2,3,1,2,4,3]`
+- Expand → sum=2,3,6,… when sum≥7 shrink → best length becomes 2 (subarray `[4,3]`).
 
 ## Interview Tips
-- State the **O(N)** guarantee: each element is added and removed at most once.
-- Mention variants: **minimum size sub‑array with sum ≥ S**, **longest substring with at most K distinct chars**, etc.
-- Compare with brute‑force O(N²) – explain why sliding window is optimal for monotonic constraints.
+- State the invariant clearly before coding.
+- Mention that for non‑positive numbers the simple two‑pointer technique may fail; fallback to prefix‑sum + binary search.
+- Discuss trade‑offs between using a hashmap (O(1) average) vs. array for character frequencies.
 
-## Related LeetCode Problems
-- 209. Minimum Size Subarray Sum
-- 3. Longest Substring Without Repeating Characters
-- 239. Sliding Window Maximum
-- 567. Permutation in String
+## Similar LeetCode Problems
+1. 209. Minimum Size Subarray Sum
+2. 3. Longest Substring Without Repeating Characters
+3. 713. Subarray Product Less Than K
 ```
